@@ -1,13 +1,16 @@
-using System;
 using System.Collections.Generic;
 using System.Linq;
 using WH.FeatureService.Api.Helpers;
+using MongoDB.Bson;
+using MongoDB.Bson.Serialization.Attributes;
 
 namespace WH.FeatureService.Api.Models
 {
     public class FeatureSet
     {
-        public Guid Version { get; set; }
+        [BsonRepresentation(BsonType.ObjectId)] 
+        public string Id { get; set; }
+        public string Version { get; set; }
 
         public List<Feature> Features { get; set; }
 

@@ -1,13 +1,16 @@
-using System;
+
+using MongoDB.Bson;
+using MongoDB.Bson.Serialization.Attributes;
 
 namespace WH.FeatureService.Api.Models
 {
 	public class Version
     {
-        public string OrgId {get;set;}
+        public int OrgId {get;set;}
         
         public string DeviceVersion {get;set;}
         
-        public Guid Id { get; set; }
+        [BsonRepresentation(BsonType.ObjectId)] 
+        public string Id { get; set; }
     }
 }

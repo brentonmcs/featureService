@@ -19,28 +19,28 @@ namespace WH.FeatureService.Api.Services
             _logger = logger;
             _mongoConnector = mongoConnector;
         }
-        public async Task<Guid> GetLatestVersion(int orgId, string deviceVersion)
+        public async Task<string> GetLatestVersion(int orgId, string deviceVersion)
         {
-            var latestVersion = _cache.Get<Guid>("Version-" + orgId + "-" + deviceVersion);
+            var versionKey = "Version-" + orgId + "-" + deviceVersion;
+            var latestVersion = _cache.Get<string>(versionKey);
 
-            if (latestVersion == default(Guid))
+            if (!string.IsNullOrEmpty(latestVersion))
             {
-                var filterOrg = Builders<Models.Version>.Filter.Eq("OrgId", orgId);
-                var filterDevice = Builders<Models.Version>.Filter.Eq("DeviceVersion", deviceVersion); 
-                var filter = Builders<Models.Version>.Filter.And(filterOrg,filterDevice);
-                var mongoSet = await _mongoConnector.QueryAsync("Version", filter);
-                latestVersion = mongoSet.Id;
+                _logger.LogInformation("Using Cache for Latest Version - {0}", latestVersion);
+                return latestVersion;
             }
-
-            _logger.LogInformation(latestVersion.ToString());
+            
+            var mongoSet = await _mongoConnector.QueryAsync("Version", BuildFilter(orgId, deviceVersion));
+            latestVersion = mongoSet?.Id;
+            _cache.Set(versionKey, latestVersion);
+            _logger.LogInformation("Querying Database for Latest Version - {0}", latestVersion);
             return latestVersion;
         }
 
         public async Task<FeatureSet> GetSet(int orgId, string deviceVersion, int clientId)
         {
             var latest = await GetLatestVersion(orgId, deviceVersion);
-
-            var featureSetKey = "FeatureSet-" + latest.ToString();
+            var featureSetKey = "FeatureSet-" + latest;
             var cachedSet = _cache.Get<FeatureSet>(featureSetKey);
             if (cachedSet != null)
             {
@@ -52,5 +52,12 @@ namespace WH.FeatureService.Api.Services
             return mongoSet;
         }
 
+
+        private FilterDefinition<Models.Version> BuildFilter(int orgId, string deviceVersion)
+        {
+            var filterOrg = Builders<Models.Version>.Filter.Eq("OrgId", orgId);
+            var filterDevice = Builders<Models.Version>.Filter.Eq("DeviceVersion", deviceVersion);
+            return Builders<Models.Version>.Filter.And(filterOrg, filterDevice);
+        }
     }
 }
