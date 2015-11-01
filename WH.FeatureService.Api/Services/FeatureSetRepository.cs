@@ -29,7 +29,7 @@ namespace WH.FeatureService.Api.Services
                 _logger.LogInformation("Using Cache for Latest Version - {0}", latestVersion);
                 return latestVersion;
             }
-            
+
             var mongoSet = await _mongoConnector.QueryAsync("Version", BuildFilter(orgId, deviceVersion));
             latestVersion = mongoSet?.Id;
             _cache.Set(versionKey, latestVersion);

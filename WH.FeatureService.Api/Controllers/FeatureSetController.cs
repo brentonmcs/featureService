@@ -15,7 +15,7 @@ namespace WH.FeatureService.Api.Controllers
             _featureSetRepository = featureSetRepository;
         }
 
-        [HttpGet]
+        [HttpGet, ResponseCache(Duration = 30)]
         public async Task<IActionResult> Get(FeatureSetRequest featureSetRequest)
         {
             if (featureSetRequest.KnownVersion == await _featureSetRepository.GetLatestVersion(featureSetRequest.OrgId, featureSetRequest.DeviceVersion))
